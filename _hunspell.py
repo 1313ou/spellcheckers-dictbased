@@ -1,8 +1,11 @@
 # pip install hunspell
 
+import sys
 import hunspell
 
-hunspeller = hunspell.HunSpell('/usr/share/hunspell/en_US.dic', '/usr/share/hunspell/en_US.aff')
+dictionary_path = ('/usr/share/hunspell/en_US.dic', '/usr/share/hunspell/en_US.aff')
+hunspeller = hunspell.HunSpell(dictionary_path[0], dictionary_path[1])
+print(dictionary_path, file=sys.stderr)
 
 
 def spell_check(sentence):

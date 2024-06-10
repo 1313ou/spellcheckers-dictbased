@@ -1,6 +1,7 @@
 from symspellpy import SymSpell, Verbosity
 from importlib.resources import files
 import re
+import sys
 
 # pip install symspellpy
 
@@ -9,7 +10,7 @@ sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
 
 # Load a dictionary
 dictionary_path = str(files('symspellpy').joinpath('frequency_dictionary_en_82_765.txt'))
-print(dictionary_path)
+print(dictionary_path, file=sys.stderr)
 sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
 separators = r"[,.;:!?'\- ]+"
 
@@ -23,16 +24,13 @@ def spell_check(sentence):
 
 def spell_check_words(sentence):
     words = filter(lambda w: w != "", re.split(separators, sentence))
-    corrected = [spell_check_word(word) for word in words]
-    if corrected:
-        print(f"{id}\t{sentence}\t{corrected[0]}")
+    return [spell_check_word(word) for word in words]
 
 
 def spell_check_word(word):
     corrections = sym_spell.lookup(word, max_edit_distance=2, verbosity=Verbosity.CLOSEST)
     if corrections:
-        corrected = [correction.term for correction in corrections]
-        return corrected
+        return [correction.term for correction in corrections]
     return None
 
 

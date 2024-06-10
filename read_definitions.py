@@ -1,65 +1,75 @@
 #!/usr/bin/python3
 
 import argparse
+import sys
 import sqlite3
+from tqdm.auto import tqdm
 
-import _pyspell
-import _symspell
-import _hunspell
-import _textblob
+import process
+from process import *
 
-sql = "SELECT sampleid, sample FROM samples"
+sql = "SELECT synsetid, definition FROM synsets"
+sql_count = "SELECT COUNT(*) FROM synsets"
+print(sql, file=sys.stderr)
 
-
-def check_pyspell(input_text, id):
-    if not _pyspell.spell_check(input_text, id):
-        print(f"{id}\r{input_text}")
+progress = False
 
 
-def check_symspell(input_text, id):
-    if not _symspell.spell_check(input_text, id):
-        print(f"{id}\r{sample}")
+def process_text(input_text, rowid, checkf):
+    r = checkf(input_text)
+    if r:
+        print(f"{rowid}\t{input_text}\t▶\t{r}")
+        return 1
+    return 0
 
 
-def check_hunspell(input_text, id):
-    if not _hunspell.spell_check(input_text, id):
-        print(f"{id}\r{input_text}")
+def count(conn, resume):
+    cursor = conn.cursor()
+    sql2 = build_sql(sql_count, resume)
+    cursor.execute(sql2)
+    return cursor.fetchone()[0]
 
 
-def check_textblob(input_text, id):
-    if not _textblob.spell_check(input_text, id):
-        print(f"{id}\r{input_text}")
-
-
-def check_all(sample, id):
-    if not _pyspell.spell_check(sample, id):
-        if not _symspell.spell_check(sample, id):
-            print(f"{id}\r{sample}")
-
+def build_sql(sql, resume):
+    return sql + f" WHERE synsetid >= {resume}" if resume else sql
 
 def read(file, resume, checkf):
     conn = sqlite3.connect(file)
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    sql2 = sql
-    if resume:
-        sql2 += f" WHERE sampleid >= {resume}"
+    sql2 = build_sql(sql, resume)
     cursor.execute(sql2)
+    n = count(conn, resume)
+    pb = tqdm(total=n, disable=not progress)
+    process_count = 0
     while True:
         row = cursor.fetchone()
         if row is None:
             break
-        rowid = row[0]
-        sample = row[1]
-        checkf(sample, rowid)
+        definition = row["definition"]
+        synsetid = row["synsetid"]
+        rowid = f"{synsetid}"
+        if process_text(definition, rowid, checkf):
+            process_count += 1
+        pb.update(1)
     conn.close()
+    print(f"{process_count} processed")
+
+
+def get_processing(name):
+    return globals()[name] if name else process.default_process
 
 
 def main():
     parser = argparse.ArgumentParser(description="scans the definitions from sqlite file")
     parser.add_argument('database', type=str, help='database')
     parser.add_argument('--resume', type=int, help='row to resume from')
+    parser.add_argument('--processing', type=str, help='processing function to apply')
     args = parser.parse_args()
-    read(args.database, args.resume, check_pyspell)
+    processing = get_processing(args.processing)
+    if processing:
+        print(processing, file=sys.stderr)
+    read(args.database, args.resume, processing)
 
 
 if __name__ == '__main__':
