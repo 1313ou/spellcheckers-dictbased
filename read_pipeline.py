@@ -8,10 +8,13 @@ from process import *
 
 
 def process_line(line, checkf):
-    fields = line.split(r"\t")
-    r = checkf()
+    fields = line.split('\t')
+    last = len(fields) - 1
+    input_text = fields[last]
+    rowid = "\t".join(fields[0:last])
+    r = checkf(input_text)
     if r:
-        print(f"{fields[0]} {fields[len(fields)-1]}")
+        print(f"{rowid} {input_text}")
 
 
 def read_file(file, resume, checkf):
@@ -25,7 +28,7 @@ def get_processing(name):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="scans the samples from sqlite file")
+    parser = argparse.ArgumentParser(description="scans the pipeline")
     parser.add_argument('text', type=str, help='text')
     parser.add_argument('--resume', type=int, help='line to resume from')
     parser.add_argument('--processing', type=str, help='processing function to apply')
@@ -33,7 +36,7 @@ def main():
     processing = get_processing(args.processing)
     if processing:
         print(processing, file=sys.stderr)
-    read_file(args.text, args.resume, process_line)
+    read_file(args.text, args.resume, processing)
 
 
 if __name__ == '__main__':
