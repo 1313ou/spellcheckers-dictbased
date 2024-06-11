@@ -12,7 +12,7 @@ sql = "SELECT synsetid, oewnsynsetid, definition FROM synsets"
 sql_count = "SELECT COUNT(*) FROM synsets"
 print(sql, file=sys.stderr)
 
-progress = False
+progress = True
 
 
 def process_text(input_text, rowid, checkf):

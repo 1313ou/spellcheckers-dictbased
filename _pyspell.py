@@ -17,7 +17,7 @@ def spell_check(sentence):
 
 
 def spell_check_word(word):
-    unknown = spell.unknown(word)
+    unknown = spell.unknown((word,))
     if len(unknown) > 0:
         corrected = [spell.correction(word) for word in unknown]
         return corrected

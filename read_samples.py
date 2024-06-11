@@ -12,7 +12,7 @@ sql = "SELECT sampleid, sample FROM samples INNER JOIN synsets USING(synsetid)"
 sql_count = "SELECT COUNT(*) FROM samples"
 print(sql, file=sys.stderr)
 
-progress = False
+progress = True
 
 
 def process_text(input_text, rowid, checkf):

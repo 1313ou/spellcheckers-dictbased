@@ -7,7 +7,7 @@ from textblob import TextBlob
 def spell_check(sentence):
     blob = TextBlob(sentence)
     corrected = str(blob.correct())
-    return corrected
+    return list(corrected)
 
 
 def print_spell_check(input_text, textid):
