@@ -36,13 +36,20 @@ while read line; do
     continue
   fi
   echo -e "${Y}${target}${Z}"
-  r=$(grep -Hn "${target}" "${DIR}"/noun* "${DIR}"/verb* "${DIR}"/adj* "${DIR}"/adv*)
-  echo -e "${B}${r}${Z}"
-  f=$(echo "${r}" | awk -F  ':' '{print $1}')
-  l=$(echo "${r}" | awk -F  ':' '{print $2}')
-  echo -e "${G}${f} @ ${l}${Z}"
-  
-  wait_for_kate_sync --line ${l} "${f}" 
-  
+  r=$(grep -Hn "\b${target}\b" "${DIR}"/noun* "${DIR}"/verb* "${DIR}"/adj* "${DIR}"/adv*)
+  if [ ! -z "${r}" ]; then
+    echo -e "${B}${r}${Z}"   
+    readarray -t lines2 <<< "${r}"
+    for line2 in "${lines2[@]}"; do
+        echo -e "${C}${r}${Z}"
+        f=$(echo "${line2}" | awk -F  ':' '{print $1}')
+        l=$(echo "${line2}" | awk -F  ':' '{print $2}')
+        echo -e "${G}${f} @ ${l}${Z}"
+        wait_for_kate_sync --line ${l} "${f}"
+    done
+  else
+    echo -e "${R}${target}${Z}"
+  fi
+
 done < "${FILE}"
 

@@ -9,12 +9,12 @@ import process
 from process import *
 
 sql_union = """
-SELECT 'sam' AS type, sampleid AS tablerowid, sample AS `text`, oewnsynsetid FROM samples INNER JOIN synsets USING(synsetid)
+SELECT 'sam' AS type, synsetid, sampleid AS tablerowid, sample AS `text`, oewnsynsetid FROM samples INNER JOIN synsets USING(synsetid)
 UNION
-SELECT 'def' AS type, synsetid AS tablerowid, definition AS `text`, oewnsynsetid FROM synsets
+SELECT 'def' AS type, synsetid, synsetid AS tablerowid, definition AS `text`, oewnsynsetid FROM synsets
 """
-sql = f"SELECT oewnsynsetid, tablerowid, type, `text` FROM ({sql_union}) ORDER BY oewnsynsetid, tablerowid;"
-sql_count = f"SELECT COUNT(*) FROM ({sql_union});"
+sql = f"SELECT oewnsynsetid, tablerowid, type, `text` FROM ({sql_union})"
+sql_count = f"SELECT COUNT(*) FROM ({sql_union})"
 print(sql, file=sys.stderr)
 
 progress = True
@@ -36,7 +36,13 @@ def count(conn, resume):
 
 
 def build_sql(sql, resume):
-    return sql + f" WHERE oewnsynsetid >= {resume}" if resume else sql
+    sql2 = sql
+    if resume:
+        where = f" WHERE synsetid >= {resume}"
+        sql2 = sql + f" {where} "
+    sql2 += " ORDER BY oewnsynsetid, tablerowid" # LIMIT 1000"
+    #print(sql2)
+    return sql2
 
 
 def read(file, resume, checkf):

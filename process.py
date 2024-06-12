@@ -66,6 +66,7 @@ def check_for_unknown(input_text):
 
 
 collected = set()
+frequency = dict()
 
 
 def collect_unknown(input_text):
@@ -73,6 +74,8 @@ def collect_unknown(input_text):
     if line_unknowns:
         # print(line_unknowns)
         collected.update(line_unknowns)
+        for w in line_unknowns:
+            frequency[w] = (frequency[w] if w in frequency else 0) + 1
     return None
 
 
